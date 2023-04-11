@@ -44,15 +44,13 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     public User addFriend(@PathVariable Long id, @PathVariable Long friendId) throws RuntimeException {
-        log.debug("Входящий запрос на добавление в друзья пользователя с id = {} пользователю c id = {}",
-                friendId, id);
+        log.debug("Входящий запрос на добавление в друзья пользователя с id = {} пользователю c id = {}", friendId, id);
         return userService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteFriend(@PathVariable Long id, @PathVariable Long friendId) throws RuntimeException {
-        log.debug("Входящий запрос на удаление из друзей пользователя с id = {} у пользователя c id = {}",
-                friendId, id);
+        log.debug("Входящий запрос на удаление из друзей пользователя с id = {} у пользователя c id = {}", friendId, id);
         userService.deleteFriend(id, friendId);
     }
 
@@ -69,15 +67,13 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public Collection<User> getCommonFriends(@PathVariable Long id, @PathVariable Long otherId)
-            throws RuntimeException {
-        log.debug("Входящий запрос на получения списка общих друзей для пользователей с id = {} и пользователя "
-                + "с id = {}", id, otherId);
+    public Collection<User> getCommonFriends(@PathVariable Long id, @PathVariable Long otherId) throws RuntimeException {
+        log.debug("Входящий запрос на получения списка общих друзей для пользователей с id = {} и пользователя " + "с id = {}", id, otherId);
         return userService.getCommonFriends(id, otherId);
     }
 
     @GetMapping("/{id}/recommendations")
-    public Collection<Film> getRecommendation(@PathVariable Long id){
+    public Collection<Film> getRecommendation(@PathVariable Long id) {
         log.debug("Входящий запрос на получение списка рекомендованных фильмов для пользователя c id = {}", id);
         return filmService.getRecommendation(id);
     }
