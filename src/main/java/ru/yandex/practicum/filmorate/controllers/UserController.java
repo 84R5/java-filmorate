@@ -1,13 +1,15 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.ErrorResponse;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
 import ru.yandex.practicum.filmorate.service.user.UserService;
 
 import java.util.Collection;
@@ -15,14 +17,11 @@ import java.util.Collection;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
-
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    private final FilmService filmService;
 
     @GetMapping
     public Collection<User> getUsers() {
@@ -75,6 +74,12 @@ public class UserController {
         log.debug("Входящий запрос на получения списка общих друзей для пользователей с id = {} и пользователя "
                 + "с id = {}", id, otherId);
         return userService.getCommonFriends(id, otherId);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public Collection<Film> getRecommendation(@PathVariable Long id){
+        log.debug("Входящий запрос на получение списка рекомендованных фильмов для пользователя c id = {}", id);
+        return filmService.getRecommendation(id);
     }
 
     @ExceptionHandler
