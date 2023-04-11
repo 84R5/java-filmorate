@@ -112,20 +112,4 @@ public class UserDbStorage implements UserStorage {
         String sql = "DELETE FROM Friendship WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(sql, userId, friendId);
     }
-
-    @Override
-    public void addFilmsLike(long filmId, long userId) {
-        String sql = "INSERT INTO Film_like (user_id, film_id) VALUES (?, ?)";
-        jdbcTemplate.update(sql, userId, filmId);
-        String sqlRate = "UPDATE Film SET rate=? WHERE film_id=?";
-        jdbcTemplate.update(sqlRate, +1, userId);
-    }
-
-    @Override
-    public void removeFilmLike(long filmId, long userId) {
-        String sql = "DELETE FROM Film_like WHERE user_id=? AND film_id=?";
-        jdbcTemplate.update(sql, userId, filmId);
-        String sqlRate = "UPDATE Film SET rate=? WHERE film_id=?";
-        jdbcTemplate.update(sqlRate, -1, userId);
-    }
 }
