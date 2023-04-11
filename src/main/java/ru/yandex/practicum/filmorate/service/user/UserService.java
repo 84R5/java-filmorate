@@ -41,8 +41,8 @@ public class UserService {
     }
 
     public User addFriend(Long userId, Long friendId) throws NotFoundException {
-        final User user = userStorage.findUserById(userId.longValue());
-        final User friend = userStorage.findUserById(friendId.longValue());
+        final User user = userStorage.findUserById(userId);
+        final User friend = userStorage.findUserById(friendId);
 
         if (user == null) {
             throw new NotFoundException("User with id = " + userId + " not found");
@@ -54,9 +54,9 @@ public class UserService {
         }
     }
 
-    public User deleteFriend(Long userId, Long friendId) throws NotFoundException {
-        User user = userStorage.findUserById(userId.longValue());
-        User friend = userStorage.findUserById(friendId.longValue());
+    public void deleteFriend(Long userId, Long friendId) throws NotFoundException {
+        User user = userStorage.findUserById(userId);
+        User friend = userStorage.findUserById(friendId);
 
         if (user == null) {
             throw new NotFoundException("User with id = " + userId + " not found");
@@ -64,7 +64,7 @@ public class UserService {
             throw new NotFoundException("User with id = " + friendId + " not found");
         } else {
             userStorage.removeFriend(userId, friendId);
-            return userStorage.update(user);
+            userStorage.update(user);
         }
     }
 
@@ -81,18 +81,17 @@ public class UserService {
     }
 
     public List<User> getFriendsUser(Long userId) throws NotFoundException {
-        User user = userStorage.findUserById(userId.longValue());
+        User user = userStorage.findUserById(userId);
         if (user == null) {
             throw new NotFoundException("User with id = " + userId + " not found");
         } else {
-            List<User> friendsList = userStorage.getFriends(userId.longValue());
-            return friendsList;
+            return userStorage.getFriends(userId);
         }
     }
 
     public List<User> getCommonFriends(Long userId, Long otherUserId) throws NotFoundException {
-        User user = userStorage.findUserById(userId.longValue());
-        User otherUser = userStorage.findUserById(otherUserId.longValue());
+        User user = userStorage.findUserById(userId);
+        User otherUser = userStorage.findUserById(otherUserId);
 
         if (user == null) {
             throw new NotFoundException("User with id = " + userId + " not found");
