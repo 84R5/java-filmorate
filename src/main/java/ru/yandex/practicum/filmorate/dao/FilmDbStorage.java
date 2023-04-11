@@ -182,4 +182,47 @@ public class FilmDbStorage implements FilmStorage {
                 .mpa(mpaStorage.findMPAById(rs.getInt("age_id")))
                 .build();
     }
+
+    @Override
+    public void addFilmsLike(long filmId, long userId) {
+        String sql = "INSERT INTO Film_like (user_id, film_id) VALUES (?, ?)";
+        jdbcTemplate.update(sql, userId, filmId);
+        String sqlRate = "UPDATE Film SET rate=? WHERE film_id=?";
+        jdbcTemplate.update(sqlRate, +1, userId);
+    }
+
+    @Override
+    public void removeFilmLike(long filmId, long userId) {
+        String sql = "DELETE FROM Film_like WHERE user_id=? AND film_id=?";
+        jdbcTemplate.update(sql, userId, filmId);
+        String sqlRate = "UPDATE Film SET rate=? WHERE film_id=?";
+        jdbcTemplate.update(sqlRate, -1, userId);
+    }
+
+    @Override
+    public List<Long> getCrossFilmsUserFromLike(long userId) {
+        String sql = "SELECT user_id FROM Film_like WHERE user_id <> ? " +
+                " AND film_id IN ( " +
+                "  SELECT film_id FROM Film_like WHERE user_id = ? " +
+                " );";
+
+        List<Long> crossUserIdList = jdbcTemplate.query(sql,
+                (rs, rowNum) -> rs.getLong("user_id"),
+                userId, userId);
+
+        return crossUserIdList;
+    }
+
+    @Override
+    public Map<Long, Integer> getUserFilmsRateFromLikes(long userId) {
+        return jdbcTemplate.query(
+                "SELECT film_id, rate FROM Film_like WHERE user_id = ? ;"
+                , (rs) -> {
+                    Map<Long, Integer> result = new HashMap<>();
+                    while (rs.next()) {
+                        result.put(rs.getLong("FILM_ID"), rs.getInt("RATE"));
+                    }
+                    return result;
+                }, userId);
+    }
 }
