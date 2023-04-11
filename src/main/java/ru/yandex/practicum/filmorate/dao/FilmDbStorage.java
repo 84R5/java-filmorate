@@ -206,18 +206,16 @@ public class FilmDbStorage implements FilmStorage {
                 "  SELECT film_id FROM Film_like WHERE user_id = ? " +
                 " );";
 
-        List<Long> crossUserIdList = jdbcTemplate.query(sql,
+        return jdbcTemplate.query(sql,
                 (rs, rowNum) -> rs.getLong("user_id"),
                 userId, userId);
-
-        return crossUserIdList;
     }
 
     @Override
     public Map<Long, Integer> getUserFilmsRateFromLikes(long userId) {
         return jdbcTemplate.query(
-                "SELECT film_id, rate FROM Film_like WHERE user_id = ? ;"
-                , (rs) -> {
+                "SELECT film_id, rate FROM Film_like WHERE user_id = ? ;",
+                (rs) -> {
                     Map<Long, Integer> result = new HashMap<>();
                     while (rs.next()) {
                         result.put(rs.getLong("FILM_ID"), rs.getInt("RATE"));
