@@ -29,7 +29,6 @@ public class UserController {
         return userService.getAll();
     }
 
-
     @PostMapping
     public User create(@RequestBody @Validated User user) throws RuntimeException {
         log.debug("Входящий запрос на создание пользователя {}", user);
