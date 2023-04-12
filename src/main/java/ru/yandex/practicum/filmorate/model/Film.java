@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
 import ru.yandex.practicum.filmorate.validator.DateFilm;
@@ -23,6 +24,9 @@ public class Film {
     private String description;
     private MPA mpa;
     private List<Genre> genres;
+    @JsonIgnore
+    private Long likes;
+    private Float averageRate;
     @DateFilm(message = "дата релиза — не раньше 28 декабря 1895 года")
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма должна быть положительной.")

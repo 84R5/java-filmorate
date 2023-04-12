@@ -1,34 +1,24 @@
 package ru.yandex.practicum.filmorate.service.film;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.storage.film.FilmLikeDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static ru.yandex.practicum.filmorate.model.Constants.*;
-
+import java.util.Collection;
+import java.util.List;
 
 @Data
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FilmService {
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
-
-    @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
-                       @Qualifier("userDbStorage") UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
-    }
+    private final FilmLikeDbStorage filmLikeStorage;
 
     public List<Film> getFilms() {
         return filmStorage.getFilms();
@@ -46,66 +36,25 @@ public class FilmService {
         return filmStorage.findFilmById(id);
     }
 
-    public List<Film> getPopular(int count) {
-        return filmStorage.getFilms().stream()
-                .sorted(Comparator.comparingInt(Film::getRate).reversed())
-                .limit(count)
-                .collect(Collectors.toList());
+    public List<Film> getTop(Long count, Integer genreId, Integer year) throws NotFoundException {
+        return filmStorage.getFilmTop(count, genreId, year);
     }
 
-    public void addFilmLike(long filmId, long userId) {
-        filmStorage.addFilmsLike(filmId, userId);
-        Film film = filmStorage.findFilmById(filmId);
-        film.setRate(film.getRate() + 1);
-        userStorage.findUserById(userId).getFilmsLike().add(filmId);
+    public void addLike(Long filmId, Long userId, Integer rate) throws NotFoundException {
+        if (filmLikeStorage.getUserLikeCount(filmId, userId) != 0) {
+            filmStorage.removeLikeRate(filmId, filmLikeStorage.getUserLikeRate(filmId, userId));
+            filmLikeStorage.removeLike(filmId, userId);
+        }
+        filmLikeStorage.addLike(filmId, userId, rate);
+        filmStorage.addLikeRate(filmId, rate);
     }
 
     public void removeFilmLike(long filmId, long userId) {
-        filmStorage.removeFilmLike(filmId, userId);
-        Film film = filmStorage.findFilmById(filmId);
-        film.setRate(film.getRate() - 1);
-        userStorage.findUserById(userId).getFilmsLike().remove(filmId);
+        filmStorage.removeLikeRate(filmId, filmLikeStorage.getUserLikeRate(filmId, userId));
+        filmLikeStorage.removeLike(filmId, userId);
     }
 
     public Collection<Film> getRecommendation(Long userId) throws NotFoundException {
-        Map<Long, Integer> userFilmsRate = filmStorage.getUserFilmsRateFromLikes(userId);
-        List<Long> crossFilmUserFromLike = filmStorage.getCrossFilmsUserFromLike(userId);
-
-        List<Film> recommendedFilms = new ArrayList<>();
-
-        for (Long crossUserId : crossFilmUserFromLike) {
-            Map<Long, Integer> crossFilmRate = filmStorage.getUserFilmsRateFromLikes(crossUserId);
-            if (countUserCrossFilm(crossFilmRate, userFilmsRate) == 0) {
-                continue;
-            }
-
-            for (Map.Entry<Long, Integer> filmRate : crossFilmRate.entrySet()) {
-                long filmId = filmRate.getKey();
-                int rate = filmRate.getValue();
-
-                if (rate >= FILM_RATE_AV && !userFilmsRate.containsKey(filmId)) {
-                    recommendedFilms.add(findFilmById(filmId));
-                }
-            }
-        }
-
-        return recommendedFilms;
-    }
-
-    private int countUserCrossFilm(Map<Long, Integer> crossFilmRate, Map<Long, Integer> userFilmsRate) {
-        int countCrossFilm = 0;
-
-        for (Map.Entry<Long, Integer> filmRateEntry : userFilmsRate.entrySet()) {
-            long filmId = filmRateEntry.getKey();
-            if (crossFilmRate.containsKey(filmId)) {
-                int originRateLo = Math.max(filmRateEntry.getValue() - FILM_RATE_DELTA, FILM_RATE_LO);
-                originRateLo = Math.min(originRateLo, FILM_RATE_AV - 1);
-
-                if (originRateLo >=  crossFilmRate.get(filmId)) {
-                    countCrossFilm++;
-                }
-            }
-        }
-        return countCrossFilm;
+        return filmStorage.getRecommendations(userId);
     }
 }

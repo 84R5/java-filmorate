@@ -1,4 +1,5 @@
-package ru.yandex.practicum.filmorate.dao;
+/*
+package ru.yandex.practicum.filmorate.storage.film;
 
 import org.springframework.jdbc.core.RowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -36,3 +37,4 @@ public class FilmMapper implements RowMapper<Film> {
                 .build();
     }
 }
+*/

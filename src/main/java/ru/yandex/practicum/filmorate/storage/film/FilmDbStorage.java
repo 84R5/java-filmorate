@@ -1,6 +1,6 @@
-package ru.yandex.practicum.filmorate.dao;
+package ru.yandex.practicum.filmorate.storage.film;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -10,24 +10,21 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static ru.yandex.practicum.filmorate.model.Constants.FILM_RATE_AV;
+
 @Repository
 @Qualifier
+@RequiredArgsConstructor
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final MpaStorage mpaStorage;
     private final GenreStorage genreStorage;
-
-    @Autowired
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaStorage mpaStorage, GenreStorage genreStorage) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.mpaStorage = mpaStorage;
-        this.genreStorage = genreStorage;
-    }
 
     @Override
     public List<Film> getFilms() {
@@ -184,19 +181,94 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public void addFilmsLike(long filmId, long userId) {
-        String sql = "INSERT INTO Film_like (user_id, film_id) VALUES (?, ?)";
-        jdbcTemplate.update(sql, userId, filmId);
-        String sqlRate = "UPDATE Film SET rate=? WHERE film_id=?";
-        jdbcTemplate.update(sqlRate, +1, userId);
+    public boolean isFilmExist(long filmId) {
+        String sql = "SELECT COUNT(*) FROM film WHERE film_id = ? ;";
+        int filmCount = jdbcTemplate.queryForObject(sql, Integer.class, filmId);
+
+        return filmCount > 0;
     }
 
     @Override
-    public void removeFilmLike(long filmId, long userId) {
-        String sql = "DELETE FROM Film_like WHERE user_id=? AND film_id=?";
-        jdbcTemplate.update(sql, userId, filmId);
-        String sqlRate = "UPDATE Film SET rate=? WHERE film_id=?";
-        jdbcTemplate.update(sqlRate, -1, userId);
+    public List<Film> getFilmTop(Long count, Integer genreId, Integer year) {
+        List<Film> films;
+        if (genreId == null && year == null) {
+            films = getTopFilmByCount(count);
+        } else if (genreId == null) {
+            films = getTopFilmByCountYear(count, year);
+        } else if (year == null) {
+            films = getTopFilmByCountGenre(count, genreId);
+        } else {
+            films = getTopFilmByCountGenreYear(count, genreId, year);
+        }
+
+        return films;
+    }
+
+    @Override
+    public List<Film> getRecommendations(long userId) throws NotFoundException {
+        Map<Long, Integer> userFilmsRate = getUserFilmsRateFromLikes(userId);
+        List<Long> crossFilmsUserFromLike = getCrossFilmsUserFromLike(userId);
+
+        List<Film> recommendationFilms = new ArrayList<>();
+
+        for (Long crossUserId : crossFilmsUserFromLike) {
+            Map<Long, Integer> crossFilmRate = getUserFilmsRateFromLikes(crossUserId);
+            if (countUserCrossFilm(crossFilmRate, userFilmsRate) == 0) {
+                continue;
+            }
+
+            for (Map.Entry<Long, Integer> filmRate : crossFilmRate.entrySet()) {
+                long filmId = filmRate.getKey();
+                int rate = filmRate.getValue();
+
+                if (rate >= FILM_RATE_AV && !userFilmsRate.containsKey(filmId)) {
+                    recommendationFilms.add(findFilmById(filmId));
+                }
+            }
+        }
+        return recommendationFilms;
+    }
+
+    private int countUserCrossFilm(Map<Long, Integer> crossFilmRate, Map<Long, Integer> userFilmsRate) {
+        int countCrossFilm = 0;
+
+        for (Map.Entry<Long, Integer> filmRateEntry : userFilmsRate.entrySet()) {
+            long filmId = filmRateEntry.getKey();
+            if (crossFilmRate.containsKey(filmId)) {
+                int originRate = filmRateEntry.getValue();
+                int crossRate = crossFilmRate.get(filmId);
+                if ((crossRate < FILM_RATE_AV && originRate < FILM_RATE_AV)
+                        || (crossRate >= FILM_RATE_AV && originRate >= FILM_RATE_AV)) {
+                    countCrossFilm++;
+                }
+            }
+        }
+        return countCrossFilm;
+    }
+
+    @Override
+    public void addLikeRate(Long filmId, Integer rate) {
+        String sql = "UPDATE film " +
+                " SET likes = likes + 1 , " +
+                " rate_score = rate_score + ? ," +
+                " average_rate = CAST(rate_score + ? AS FLOAT) / (likes + 1)" +
+                " WHERE film_id = ?; ";
+
+        jdbcTemplate.update(sql, rate, rate, filmId);
+    }
+
+    @Override
+    public void removeLikeRate(long filmId, int rate) {
+        String sql = "UPDATE film " +
+                " SET likes = likes - 1 , " +
+                " rate_score = rate_score - ? ," +
+                " average_rate = CASE " +
+                "                    WHEN (likes - 1) = 0 THEN 0" +
+                "                    ELSE CAST((rate_score - ?) AS FLOAT) / (likes - 1) " +
+                "                END" +
+                " WHERE film_id = ?; ";
+
+        jdbcTemplate.update(sql, rate, rate, filmId);
     }
 
     @Override
@@ -222,5 +294,60 @@ public class FilmDbStorage implements FilmStorage {
                     }
                     return result;
                 }, userId);
+    }
+
+    private List<Film> getTopFilmByCount(Long count) {
+        String sql = "SELECT * FROM film " +
+                "ORDER BY average_rate DESC " +
+                "LIMIT ?;";
+
+        return jdbcTemplate.query(sql, this::makeFilm, count);
+    }
+
+    private List<Film> getTopFilmByCountGenreYear(Long count, Integer genreId, Integer year) {
+        String sql = "SELECT * FROM film WHERE " +
+                "FILM_ID IN (SELECT film_id FROM FILM_GENRES WHERE genre_id = ?) " +
+                "AND YEAR(release_date) = ? " +
+                "ORDER BY average_rate DESC " +
+                "LIMIT ?;";
+
+        return jdbcTemplate.query(sql, this::makeFilm, genreId, year, count);
+    }
+
+    private List<Film> getTopFilmByCountGenre(Long count, Integer genreId) {
+        String sql = "SELECT * FROM film WHERE " +
+                "FILM_ID IN (SELECT film_id FROM film_genres WHERE genre_id = ?) " +
+                "ORDER BY average_rate DESC " +
+                "LIMIT ?;";
+
+        return jdbcTemplate.query(sql, this::makeFilm, genreId, count);
+    }
+
+    private List<Film> getTopFilmByCountYear(Long count, Integer year) {
+        String sql = "SELECT * FROM film WHERE " +
+                "YEAR(RELEASE_DATE) = ? " +
+                "ORDER BY average_rate DESC " +
+                "LIMIT ?;";
+
+        return jdbcTemplate.query(sql, this::makeFilm, year, count);
+    }
+
+    private Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
+        List<Genre> genreList = new ArrayList<>();
+        if (rs.getInt("genre_id") > 0) {
+            genreList.add(genreStorage.findGenreById(rs.getInt("genre_id")));
+        }
+        return Film.builder()
+                .id(rs.getLong("film_id"))
+                .name(rs.getString("name"))
+                .description(rs.getString("description"))
+                .releaseDate(rs.getDate("release_date").toLocalDate())
+                .duration(rs.getLong("duration"))
+                .rate(rs.getInt("rate"))
+                .averageRate(rs.getFloat("average_rate"))
+                .genres(genreList)
+                .likes(rs.getLong("likes"))
+                .mpa(mpaStorage.findMPAById(rs.getInt("age_id")))
+                .build();
     }
 }

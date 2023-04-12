@@ -1,5 +1,6 @@
-package ru.yandex.practicum.filmorate.dao;
+package ru.yandex.practicum.filmorate.storage.user;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -9,19 +10,14 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.*;
 
 @Repository
 @Qualifier
+@RequiredArgsConstructor
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    public UserDbStorage(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public List<User> getUsers() {
@@ -111,5 +107,13 @@ public class UserDbStorage implements UserStorage {
     public void removeFriend(long userId, long friendId) {
         String sql = "DELETE FROM Friendship WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(sql, userId, friendId);
+    }
+
+    @Override
+    public boolean isUserExist(long userId) {
+        String sql = "SELECT COUNT(*) FROM USERS WHERE USER_ID = ? ;";
+        int countUser = jdbcTemplate.queryForObject(sql, Integer.class, userId);
+
+        return countUser > 0;
     }
 }

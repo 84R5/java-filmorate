@@ -41,6 +41,10 @@ CREATE TABLE IF NOT EXISTS Film (
   duration BIGINT,
   rate INT,
   age_id INT,
+  likes INTEGER NOT NULL DEFAULT 0,
+  rate_score INTEGER DEFAULT 0,
+  average_rate REAL,
+  CONSTRAINT check_duration CHECK(duration > 0),
   FOREIGN KEY(age_id) REFERENCES Age_rating(age_id)
 );
 
@@ -55,7 +59,8 @@ CREATE TABLE IF NOT EXISTS FilmGenre (
 CREATE TABLE IF NOT EXISTS Film_like (
   user_id INT,
   film_id INT,
+  rate INT DEFAULT 10,
   PRIMARY KEY(user_id, film_id),
-  FOREIGN KEY(user_id) REFERENCES Users(user_id),
-  FOREIGN KEY(film_id) REFERENCES Film(film_id)
+  FOREIGN KEY(user_id) REFERENCES Users(user_id) ON DELETE NO ACTION,
+  FOREIGN KEY(film_id) REFERENCES Film(film_id) ON DELETE NO ACTION
 );
