@@ -17,7 +17,7 @@ public class MpaStorage {
     public MpaStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
         String sql = "SELECT * FROM Age_rating";
-        mpaList.addAll(jdbcTemplate.query(sql, (rs, rowNum) -> new MPA(rs.getInt("age_id"),
+        mpaList.addAll(jdbcTemplate.query(sql, (rs, rowNum) -> new MPA(rs.getLong("age_id"),
                 rs.getString("name"))));
     }
 

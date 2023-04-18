@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -38,11 +39,18 @@ public class FilmController {
         return filmService.findFilmById(id);
     }
 
-
     @GetMapping("/popular")
-    public Collection<Film> getPopular(@RequestParam(defaultValue = "10") int count) {
-        log.debug("Входящий запрос на получение первых {} популярных фильмов", count);
-        return filmService.getPopular(count);
+    public Collection<Film> getPopular(@RequestParam(defaultValue = "10") int count,
+                                       @RequestParam(required = false) Integer genreId,
+                                       @RequestParam(required = false) Integer year) {
+        log.debug("Входящий запрос на получение первых {} популярных фильмов с жанром {} за год {}", count, genreId, year);
+        return filmService.getPopular(count, genreId, year);
+    }
+
+    @GetMapping("/common")
+    public List<Film> getCommonFilms(@RequestParam(value = "userId") Long userId,
+                                     @RequestParam(value = "friendId") Long friendId) {
+        return filmService.getCommonFilms(userId, friendId);
     }
 
     @PostMapping
@@ -52,18 +60,18 @@ public class FilmController {
         return filmService.create(film);
     }
 
+    @DeleteMapping("{id}")
+    public void deleteFilm(@PathVariable Long id) throws NotFoundException {
+        log.debug("Входящий запрос на удаление фильма с id = {}", id);
+        filmService.deleteFilmById(id);
+    }
+
     @PutMapping
     public Film updateFilm(@Validated @RequestBody Film film) throws NotFoundException {
         log.debug("Входящий запрос на редактирование фильма");
         log.debug(film.toString());
         return filmService.update(film);
     }
-
-    /*@DeleteMapping("/{id}")
-    public void deleteFilm(@PathVariable Long id) throws NotFoundException {
-        log.debug("Входящий запрос на удаление фильма с id = {}", id);
-        filmService.delete(id);
-    }*/
 
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable Long id, @PathVariable Long userId) throws NotFoundException {
@@ -75,6 +83,22 @@ public class FilmController {
     public void deleteLike(@PathVariable Long id, @PathVariable Long userId) throws NotFoundException {
         log.debug("Входящий запрос на удаление лайка пользователем с id = {} для фильма с id = {}", userId, id);
         filmService.removeFilmLike(id, userId);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<Film> getDirectorFilms(@PathVariable Long directorId,
+                                       @RequestParam(defaultValue = "likes", required = false) String sortBy) {
+        return filmService.getDirectorFilms(directorId, sortBy);
+    }
+
+    @GetMapping("/search")
+    public Collection<Film> getSearchFilms(
+            @RequestParam(defaultValue = "") String query,
+            @RequestParam(defaultValue = "") String by,
+            @RequestParam(defaultValue = "10") int count) {
+        log.debug("Входящий запрос на поиск фильма парметры запрос: '{}' запрос поиска: '{}' количесвто фильмов: '{}'",
+                query, by, count);
+        return filmService.getSearchFilms(query, by, count);
     }
 
     @ExceptionHandler
