@@ -10,10 +10,10 @@ import javax.validation.constraints.NotNull;
 
 public class MPA {
     @NotNull
-    private int id;
+    private Long id;
     private String name;
 
-    public MPA(int id, String name) {
+    public MPA(Long id, String name) {
         this.id = id;
         this.name = name;
     }
