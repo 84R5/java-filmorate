@@ -29,13 +29,13 @@ public class FilmController {
 
     @GetMapping
     public Collection<Film> getFilms() throws NotFoundException {
-        log.debug("Входящий запрос на получение списка всех фильмов");
+        log.info("Received request to GET /films");
         return filmService.getFilms();
     }
 
     @GetMapping("/{id}")
     public Film getFilm(@PathVariable Long id) throws NotFoundException {
-        log.debug("Входящий запрос на получение фильма по id = {}", id);
+        log.info("Received request to GET /films/{}", id);
         return filmService.findFilmById(id);
     }
 
@@ -43,51 +43,51 @@ public class FilmController {
     public Collection<Film> getPopular(@RequestParam(defaultValue = "10") int count,
                                        @RequestParam(required = false) Integer genreId,
                                        @RequestParam(required = false) Integer year) {
-        log.debug("Входящий запрос на получение первых {} популярных фильмов с жанром {} за год {}", count, genreId, year);
+        log.info("Received request to GET /films/popular?count={}&genreId={}&year={}", count, genreId, year);
         return filmService.getPopular(count, genreId, year);
     }
 
     @GetMapping("/common")
     public List<Film> getCommonFilms(@RequestParam(value = "userId") Long userId,
                                      @RequestParam(value = "friendId") Long friendId) {
+        log.info("Received request to GET /films/common?userId={}&friendId={}", userId, friendId);
         return filmService.getCommonFilms(userId, friendId);
     }
 
     @PostMapping
     public Film createFilm(@Validated @RequestBody Film film) throws RuntimeException {
-        log.debug("Входящий запрос на создание фильма");
-        log.debug(film.toString());
+        log.info("Received request to POST /films with body: {}", film);
         return filmService.create(film);
     }
 
     @DeleteMapping("{id}")
     public void deleteFilm(@PathVariable Long id) throws NotFoundException {
-        log.debug("Входящий запрос на удаление фильма с id = {}", id);
+        log.info("Received request to DELETE /films/{}", id);
         filmService.deleteFilmById(id);
     }
 
     @PutMapping
     public Film updateFilm(@Validated @RequestBody Film film) throws NotFoundException {
-        log.debug("Входящий запрос на редактирование фильма");
-        log.debug(film.toString());
+        log.info("Received request to PUT /films with body: {}", film);
         return filmService.update(film);
     }
 
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable Long id, @PathVariable Long userId) throws NotFoundException {
-        log.debug("Входящий запрос на проставление лайка пользователем с id = {} для фильма с id = {}", userId, id);
+        log.info("Received request to PUT /films/{}/like/{}", id, userId);
         filmService.addFilmLike(id, userId);
     }
 
     @DeleteMapping("{id}/like/{userId}")
     public void deleteLike(@PathVariable Long id, @PathVariable Long userId) throws NotFoundException {
-        log.debug("Входящий запрос на удаление лайка пользователем с id = {} для фильма с id = {}", userId, id);
+        log.info("Received request to DELETE /films/{}/like/{}", id, userId);
         filmService.removeFilmLike(id, userId);
     }
 
     @GetMapping("/director/{directorId}")
     public List<Film> getDirectorFilms(@PathVariable Long directorId,
                                        @RequestParam(defaultValue = "likes", required = false) String sortBy) {
+        log.info("Received request to GET /films/director/{}?sortBy={}", directorId, sortBy);
         return filmService.getDirectorFilms(directorId, sortBy);
     }
 
@@ -96,8 +96,7 @@ public class FilmController {
             @RequestParam(defaultValue = "") String query,
             @RequestParam(defaultValue = "") String by,
             @RequestParam(defaultValue = "10") int count) {
-        log.debug("Входящий запрос на поиск фильма парметры запрос: '{}' запрос поиска: '{}' количесвто фильмов: '{}'",
-                query, by, count);
+        log.info("Received request to GET /films/search?query={}&by={}&count={}", query, by, count);
         return filmService.getSearchFilms(query, by, count);
     }
 

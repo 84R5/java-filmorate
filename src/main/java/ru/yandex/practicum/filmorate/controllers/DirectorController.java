@@ -17,30 +17,32 @@ public class DirectorController {
 
     @PostMapping
     public Director create(@Valid @RequestBody Director director) {
-        log.info("Создан режиссер: {}", director);
+        log.info("Received request to POST /directors with body: {}", director);
         return directorService.createDirector(director);
     }
 
     @PutMapping
     public Director updateDirector(@Valid @RequestBody Director director) {
         directorService.updateDirector(director);
-        log.info("Обновлен режиссер: {}", director);
+        log.info("Received request to PUT /directors with body: {}", director);
         return director;
     }
 
     @DeleteMapping("/{directorId}")
     public void deleteDirector(@PathVariable Long directorId) {
+        log.info("Received request to DELETE /directors/{}", directorId);
         directorService.deleteDirector(directorId);
-        log.info("Удален режиссер: {}", directorId);
     }
 
     @GetMapping("/{directorId}")
     public Director getDirectorById(@PathVariable Long directorId) {
+        log.info("Received request to GET /directors/{}", directorId);
         return directorService.getDirector(directorId);
     }
 
     @GetMapping
     public Iterable<Director> getAllDirectors() {
+        log.info("Received request to GET /directors");
         return directorService.getAllDirectors();
     }
 }

@@ -19,65 +19,61 @@ public class ReviewController {
     @PostMapping
     public Review createReview(@Valid @RequestBody Review review) {
         reviewService.createReview(review);
-        log.info("Создано ревью: {}", review);
+        log.info("Received request to POST /reviews with body: {}", review);
         return review;
     }
 
     @PutMapping
     public Review updateReview(@Valid @RequestBody Review review) {
-        log.info("Обновлено ревью: {}", review);
+        log.info("Received request to PUT /reviews with body: {}", review);
         return reviewService.updateReview(review);
     }
 
     @DeleteMapping("/{reviewId}")
     public void deleteReview(@PathVariable Long reviewId) {
+        log.info("Received request to DELETE /reviews/{}", reviewId);
         reviewService.deleteReview(reviewId);
-        log.info("Ревью удалено.");
     }
 
     @GetMapping("/{reviewId}")
     public Review getReviewById(@PathVariable Long reviewId) {
+        log.info("Received request to GET /reviews/{}", reviewId);
         return reviewService.getReviewById(reviewId);
     }
 
     @GetMapping()
     public List<Review> getReviewsByFilmId(@RequestParam(required = false) Long filmId,
                                            @RequestParam(defaultValue = "10", required = false) int count) {
-        if (filmId == null) {
-            return reviewService.getAllReviews();
-        }
-        if (count < 0) {
-            throw new IllegalArgumentException("Количество искомых отзывов не может быть отрицательным");
-        }
 
+        log.info("Received request to GET /reviews?filmId={}&count={}", filmId, count);
         return reviewService.getReviewsByFilmId(filmId, count);
     }
 
     @PutMapping("/{reviewId}/like/{userId}")
     public void addLikeReview(@PathVariable Long reviewId,
                               @PathVariable Long userId) {
-
+        log.info("Received request to PUT /reviews/{}/like/{}", reviewId, userId);
         reviewService.addLikeReview(reviewId, userId);
     }
 
     @PutMapping("/{reviewId}/dislike/{userId}")
     public void addDislikeReview(@PathVariable Long reviewId,
                                  @PathVariable Long userId) {
-
+        log.info("Received request to PUT /reviews/{}/dislike/{}", reviewId, userId);
         reviewService.addDislikeReview(reviewId, userId);
     }
 
     @DeleteMapping("/{reviewId}/like/{userId}")
     public void deleteLikeReview(@PathVariable Long reviewId,
                                  @PathVariable Long userId) {
-
+        log.info("Received request to DELETE /reviews/{}/like/{}", reviewId, userId);
         reviewService.deleteLikeReview(reviewId, userId);
     }
 
     @DeleteMapping("/{reviewId}/dislike/{userId}")
     public void deleteDislikeReview(@PathVariable Long reviewId,
                                     @PathVariable Long userId) {
-
+        log.info("Received request to DELETE /reviews/{}/dislike/{}", reviewId, userId);
         reviewService.deleteDislikeReview(reviewId, userId);
     }
 }

@@ -32,7 +32,8 @@ public class UserService {
         if (userStorage.findUserById(user.getId()) != null) {
             return userStorage.update(user);
         } else {
-            throw new NotFoundException("Пользователя с таким ID не существует");
+            log.warn("User not found");
+            throw new NotFoundException("User not found");
         }
     }
 
@@ -41,8 +42,10 @@ public class UserService {
         final User friend = userStorage.findUserById(friendId);
 
         if (user == null) {
+            log.warn("User with id = " + userId + " not found");
             throw new NotFoundException("User with id = " + userId + " not found");
         } else if (friend == null) {
+            log.warn("User with id = " + friendId + " not found");
             throw new NotFoundException("User with id = " + friendId + " not found");
         } else {
             userStorage.addFriend(userId, friendId);
@@ -56,8 +59,10 @@ public class UserService {
         User friend = userStorage.findUserById(friendId);
 
         if (user == null) {
+            log.warn("User with id = " + userId + " not found");
             throw new NotFoundException("User with id = " + userId + " not found");
         } else if (friend == null) {
+            log.warn("User with id = " + friendId + " not found");
             throw new NotFoundException("User with id = " + friendId + " not found");
         } else {
             userStorage.removeFriend(userId, friendId);
@@ -73,6 +78,7 @@ public class UserService {
     public User get(Long userId) throws NotFoundException {
         final User user = userStorage.findUserById(userId);
         if (user == null) {
+            log.warn("User with id = " + userId + " not found");
             throw new NotFoundException("User with id = " + userId + " not found");
         }
         return user;
@@ -85,6 +91,7 @@ public class UserService {
     public List<User> getFriendsUser(Long userId) throws NotFoundException {
         User user = userStorage.findUserById(userId);
         if (user == null) {
+            log.warn("User with id = " + userId + " not found");
             throw new NotFoundException("User with id = " + userId + " not found");
         } else {
             return userStorage.getFriends(userId);
@@ -96,8 +103,10 @@ public class UserService {
         User otherUser = userStorage.findUserById(otherUserId);
 
         if (user == null) {
+            log.warn("User with id = " + userId + " not found");
             throw new NotFoundException("User with id = " + userId + " not found");
         } else if (otherUser == null) {
+            log.warn("User with id = " + otherUserId + " not found");
             throw new NotFoundException("User with id = " + otherUserId + " not found");
         } else {
             return userStorage.getCommonFriends(userId, otherUserId);
@@ -107,6 +116,7 @@ public class UserService {
     public List<Feed> getFeed(Long userId) {
         User user = userStorage.findUserById(userId);
         if (user == null) {
+            log.warn("User with id = " + userId + " not found");
             throw new NotFoundException("User with id = " + userId + " not found");
         } else {
             return feedStorage.getFeed(userId);

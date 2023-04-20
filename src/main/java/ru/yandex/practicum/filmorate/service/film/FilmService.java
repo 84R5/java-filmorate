@@ -4,11 +4,10 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.GenreStorage;
+import ru.yandex.practicum.filmorate.dao.MpaStorage;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Feed;
-import ru.yandex.practicum.filmorate.model.FeedEventType;
-import ru.yandex.practicum.filmorate.model.FeedOperation;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 import ru.yandex.practicum.filmorate.storage.FeedStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -26,6 +25,8 @@ public class FilmService {
     private final UserStorage userStorage;
     private final FeedStorage feedStorage;
     private final DirectorStorage directorStorage;
+    private final GenreStorage genreStorage;
+    private final MpaStorage mpaStorage;
 
     public List<Film> getFilms() {
         return filmStorage.getFilms();
@@ -44,8 +45,8 @@ public class FilmService {
         if (receivedFilm != null) {
             return receivedFilm;
         } else {
-            log.warn("Ошибка получения фильма. Фильм с ID " + id + " не найден");
-            throw new NotFoundException("Фильм с Id " + id + " не найден");
+            log.warn("Error receiving the movie. Film with ID " + id + " not found");
+            throw new NotFoundException("Film with ID " + id + " not found");
         }
     }
 
@@ -87,11 +88,13 @@ public class FilmService {
     public List<Film> getDirectorFilms(Long directorId, String sortBy) {
 
         if (!(sortBy.equals("year") || sortBy.equals("likes"))) {
-            throw new IllegalArgumentException("Сортировка возможна либо по годам, либо по количеству лайков");
+            log.warn("Sorting is possible either by year or by the number of likes");
+            throw new IllegalArgumentException("Sorting is possible either by year or by the number of likes");
         }
 
         if (directorStorage.getDirector(directorId) == null) {
-            throw new IllegalArgumentException("Режиссер не найден.");
+            log.warn("Director not found");
+            throw new IllegalArgumentException("Director not found");
         }
 
         return filmStorage.getDirectorFilms(directorId, sortBy);
@@ -104,4 +107,31 @@ public class FilmService {
     public List<Film> getSearchFilms(String query, String by, int count) {
         return filmStorage.getSearchFilms(query, by, count);
     }
+
+    public Genre getGenreById(int id) {
+        if (genreStorage.findGenreById(id) != null) {
+            return genreStorage.findGenreById(id);
+        } else {
+            log.warn("Genre not found");
+            throw new NotFoundException("Genre not found");
+        }
+    }
+
+    public List<Genre> getAllGenres() {
+        return genreStorage.getGenreList();
+    }
+
+    public List<MPA> getAllMPA() {
+        return mpaStorage.getMPAList();
+    }
+
+    public MPA getMPAById(int id) {
+        if (mpaStorage.findMPAById(id) != null) {
+            return mpaStorage.findMPAById(id);
+        } else {
+            log.warn("Age rating not found");
+            throw new NotFoundException("Age rating not found");
+        }
+    }
+
 }
