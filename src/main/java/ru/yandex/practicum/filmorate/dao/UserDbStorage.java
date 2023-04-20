@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.dao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -28,9 +29,20 @@ public class UserDbStorage implements UserStorage {
     @Override
     public List<User> getUsers() {
         String sql = "SELECT * " +
-                "FROM Users";
-        return jdbcTemplate.query(sql, new UserMapper(jdbcTemplate));
+                "FROM Users " +
+                "ORDER BY user_id;";
+        return jdbcTemplate.query(sql, mapRow);
     }
+
+    static final RowMapper<User> mapRow =
+            (rs, rowNum) -> User.builder()
+                    .id(rs.getLong("user_id"))
+                    .email(rs.getString("email"))
+                    .login(rs.getString("login"))
+                    .name(rs.getString("name"))
+                    .birthday(rs.getDate("birthday").toLocalDate())
+                    .friends(new HashSet<>())
+                    .build();
 
     @Override
     public User create(User user) {
@@ -180,32 +192,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void deleteUserById(Long userId) {
-
-        String sql = "DELETE FROM Friendship " +
-                "WHERE friend_id =?";
-        jdbcTemplate.update(sql, userId);
-
-        sql = "DELETE FROM Friendship " +
-                "WHERE user_id =?";
-        jdbcTemplate.update(sql, userId);
-
-        sql = "DELETE FROM Film_like " +
-                "WHERE user_id =?";
-        jdbcTemplate.update(sql, userId);
-
-        sql = "DELETE FROM review_likes " +
-                "WHERE user_id =?";
-        jdbcTemplate.update(sql, userId);
-
-        sql = "DELETE FROM reviews " +
-                "WHERE user_id =?";
-        jdbcTemplate.update(sql, userId);
-
-        sql = "DELETE FROM user_feed " +
-                "WHERE user_id =?";
-        jdbcTemplate.update(sql, userId);
-
-        sql = "DELETE FROM Users " +
+        String sql = "DELETE FROM Users " +
                 "WHERE user_id =?";
         jdbcTemplate.update(sql, userId);
     }
