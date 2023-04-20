@@ -101,6 +101,7 @@ class FilmorateApplicationTests {
                 .name("UserName1")
                 .birthday(LocalDate.of(1990, 6, 9))
                 .login("UserLogin")
+                .friends(new HashSet<>())
                 .build();
 
         User user2ToCompare = User.builder()
@@ -108,7 +109,9 @@ class FilmorateApplicationTests {
                 .name("UserName2")
                 .birthday(LocalDate.of(1986, 1, 2))
                 .login("UserLogin2")
+                .friends(new HashSet<>())
                 .build();
+
 
         listToCompare.add(user1ToCompare);
         listToCompare.add(user2ToCompare);
