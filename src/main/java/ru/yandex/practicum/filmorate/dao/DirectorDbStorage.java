@@ -84,18 +84,17 @@ public class DirectorDbStorage implements DirectorStorage {
     }
 
     public List<Director> findDirectorsByFilm(long filmId) {
-        String sql = "SELECT * " +
-                "FROM directors " +
-                "WHERE director_id = (SELECT director_id " +
+        String sql = "SELECT directors.* " +
                 "FROM director_films " +
-                "WHERE film_id = ?)";
+                "LEFT JOIN directors ON director_films.DIRECTOR_ID = directors.DIRECTOR_ID " +
+                "WHERE film_id=?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeDirector(rs), filmId);
     }
 
     private Director makeDirector(ResultSet rs) throws SQLException {
-        Director director = new Director();
-        director.setId((long) rs.getInt("director_id"));
-        director.setName(rs.getString("name"));
-        return director;
+        return Director.builder()
+                .id(rs.getLong("director_id"))
+                .name(rs.getString("name"))
+                .build();
     }
 }
