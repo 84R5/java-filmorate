@@ -144,17 +144,17 @@ public class FilmDbStorage implements FilmStorage {
                 Set<Long> updatedGenreIds = new HashSet<>();
                 film.getGenres().forEach(g -> updatedGenreIds.add(g.getId()));
 
-                Set<Integer> existingGenreIds = new HashSet<>();
+                Set<Long> existingGenreIds = new HashSet<>();
                 String sqlGenreIds = "SELECT genre_id  " +
                         "FROM FilmGenre " +
                         "WHERE film_id=?";
                 SqlRowSet rsGenreIds = jdbcTemplate.queryForRowSet(sqlGenreIds, film.getId());
 
                 while (rsGenreIds.next()) {
-                    existingGenreIds.add(rsGenreIds.getInt("genre_id"));
+                    existingGenreIds.add(rsGenreIds.getLong("genre_id"));
                 }
 
-                Set<Integer> genreIdsToRemove = new HashSet<>(existingGenreIds);
+                Set<Long> genreIdsToRemove = new HashSet<>(existingGenreIds);
                 genreIdsToRemove.removeAll(updatedGenreIds);
 
                 Set<Long> genreIdsToAdd = new HashSet<>(updatedGenreIds);
@@ -213,20 +213,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public void deleteFilmById(long filmId) {
-
-        String sql = "DELETE FROM FilmGenre WHERE film_id =?";
-        jdbcTemplate.update(sql, filmId);
-
-        sql = "DELETE FROM director_films WHERE film_id =?";
-        jdbcTemplate.update(sql, filmId);
-
-        sql = "DELETE FROM reviews WHERE film_id =?";
-        jdbcTemplate.update(sql, filmId);
-
-        sql = "DELETE FROM Film_like WHERE film_id =?";
-        jdbcTemplate.update(sql, filmId);
-
-        sql = "DELETE FROM Film WHERE film_id =?";
+        String sql = "DELETE FROM Film WHERE film_id =?";
         jdbcTemplate.update(sql, filmId);
     }
 
