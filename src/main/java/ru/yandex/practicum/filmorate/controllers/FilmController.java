@@ -43,26 +43,26 @@ public class FilmController {
     public Collection<Film> getPopular(@RequestParam(defaultValue = "10") int count,
                                        @RequestParam(required = false) Integer genreId,
                                        @RequestParam(required = false) Integer year) {
-        log.info("Received request to GET /films/popular?count={}&genreId={}&year={}", count, genreId, year);
+        log.info("[FT-3] Received request to GET /films/popular?count={}&genreId={}&year={}", count, genreId, year);
         return filmService.getPopular(count, genreId, year);
     }
 
     @GetMapping("/common")
     public List<Film> getCommonFilms(@RequestParam(value = "userId") Long userId,
                                      @RequestParam(value = "friendId") Long friendId) {
-        log.info("Received request to GET /films/common?userId={}&friendId={}", userId, friendId);
+        log.info("[FT-6] Received request to GET /films/common?userId={}&friendId={}", userId, friendId);
         return filmService.getCommonFilms(userId, friendId);
     }
 
     @PostMapping
     public Film createFilm(@Validated @RequestBody Film film) throws RuntimeException {
-        log.info("Received request to POST /films with body: {}", film);
+        log.info("[FT-5] Received request to POST /films with body: {}", film);
         return filmService.create(film);
     }
 
     @DeleteMapping("{id}")
     public void deleteFilm(@PathVariable Long id) throws NotFoundException {
-        log.info("Received request to DELETE /films/{}", id);
+        log.info("[FT-4] Received request to DELETE /films/{}", id);
         filmService.deleteFilmById(id);
     }
 
@@ -87,7 +87,7 @@ public class FilmController {
     @GetMapping("/director/{directorId}")
     public List<Film> getDirectorFilms(@PathVariable Long directorId,
                                        @RequestParam(defaultValue = "likes", required = false) String sortBy) {
-        log.info("Received request to GET /films/director/{}?sortBy={}", directorId, sortBy);
+        log.info("[FT-5] Received request to GET /films/director/{}?sortBy={}", directorId, sortBy);
         return filmService.getDirectorFilms(directorId, sortBy);
     }
 
@@ -96,7 +96,7 @@ public class FilmController {
             @RequestParam(defaultValue = "") String query,
             @RequestParam(defaultValue = "") String by,
             @RequestParam(defaultValue = "10") int count) {
-        log.info("Received request to GET /films/search?query={}&by={}&count={}", query, by, count);
+        log.info("[FT-2] Received request to GET /films/search?query={}&by={}&count={}", query, by, count);
         return filmService.getSearchFilms(query, by, count);
     }
 

@@ -47,7 +47,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) throws RuntimeException {
-        log.info("Received request to DELETE /users/{}", id);
+        log.info("[FT-4] Received request to DELETE /users/{}", id);
         userService.deleteUserById(id);
     }
 
@@ -85,13 +85,13 @@ public class UserController {
     @GetMapping("/{id}/feed")
     public Collection<Feed> getFeed(@PathVariable Long id)
             throws RuntimeException {
-        log.info("Received request to GET /users/{}/feed", id);
+        log.info("[FT-1] Received request to GET /users/{}/feed", id);
         return userService.getFeed(id);
     }
 
     @GetMapping("/{id}/recommendations")
     public Collection<Film> getRecommendations(@PathVariable Long id) {
-        log.info("Received request to GET /users/{}/recommendations", id);
+        log.info("[FT-7] Received request to GET /users/{}/recommendations", id);
         return userService.getRecommendations(id);
     }
 
